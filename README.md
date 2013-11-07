@@ -1,4 +1,9 @@
 HTML5
 =====
 
-Projets divers
+Projets divers utilisant Pixi.js
+
+Licence
+========
+
+Licence publique
