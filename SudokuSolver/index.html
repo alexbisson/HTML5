@@ -17,10 +17,10 @@
 	<script>
 	
 	// create an new instance of a pixi stage
-	var stage = new PIXI.Stage(0x000000);
+	var stage = new PIXI.Stage(0x000000, true);
 	
 	// create a renderer instance
-	var renderer = PIXI.autoDetectRenderer(550, 400);
+	var renderer = PIXI.autoDetectRenderer(900, 400);
 	
 	// add the renderer view element to the DOM
 	document.body.appendChild(renderer.view);
@@ -39,6 +39,35 @@
 	stage.addChild(sudokuGrid);
 	stage.addChild(sudokuResolved);
 	
+	var textureButton = PIXI.Texture.fromImage("reroll.jpg");
+	var button = new PIXI.Sprite(textureButton);
+	button.buttonMode = true;
+	button.interactive = true;
+	
+	button.mouseover = function(data){
+			this.alpha = 0.5;
+	}
+               
+	button.mouseout = function(data){
+			this.alpha = 1;
+	}
+	button.click = function(data) {
+		stage.removeChild(sudokuGrid);
+		stage.removeChild(sudokuResolved);
+		sudoku.findSolution();
+		sudokuGrid =  new PIXI.Text(sudoku.getGridToSolve(), {font: "35px Snippet", fill: "white", align: "left"});
+	    sudokuResolved = new PIXI.Text(sudoku.getGridSolved(), {font: "35px Snippet", fill: "white", align: "left"});
+		sudokuGrid.position.x = 20;
+		sudokuGrid.position.y = 20;
+		sudokuResolved.position.x = 300;
+		sudokuResolved.position.y = 20;
+		stage.addChild(sudokuGrid);
+		stage.addChild(sudokuResolved);
+	}
+	button.position.x = 600;
+	button.position.y = 180;
+	
+	stage.addChild(button);
 	function animate() {
 	
 	    requestAnimFrame( animate );
