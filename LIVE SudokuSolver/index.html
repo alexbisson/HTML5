@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>pixi.js example 1</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #000000;
+		}
+	</style>
+	<script src="pixi.js"></script>
+	<script src="sudoku_solver.js"></script>
+
+</head>
+<body>
+	<script>
+	var grid = [];
+	var sudoku = new SudokuSolver();
+	var areWeDone = false;
+	var operations = 0;
+		
+	document.addEventListener('DOMContentLoaded', start, false);
+	
+	function start() {
+		// create an new instance of a pixi stage
+		stage = new PIXI.Stage(0x000000, true);
+		
+		// create a renderer instance
+		renderer = PIXI.autoDetectRenderer(1500, 900);
+		
+		// add the renderer view element to the DOM
+		document.body.appendChild(renderer.view);
+		
+		sudoku.findSolution();
+		
+		var g = new PIXI.Graphics();
+		g.lineStyle(3, 0xFFFFFF , 1);
+		g.drawRect(750,500, 50, 50);
+		g.lineStyle(3, 0x0000FF , 1);
+		g.drawRect(750,560, 50, 50);
+		g.lineStyle(3, 0xFF0000 , 1);
+		g.drawRect(750,620, 50, 50);
+		stage.addChild(g);
+		
+		
+		var emptyCell = new PIXI.Text("Empty Cell", {font: "35px Snippet", fill: "white", align: "left"});
+		emptyCell.position.x = 825;
+		emptyCell.position.y = 505;
+		stage.addChild(emptyCell);
+		
+		var lockedCell = new PIXI.Text("Locked Cell", {font: "35px Snippet", fill: "blue", align: "left"});
+		lockedCell.position.x = 825;
+		lockedCell.position.y = 565;
+		stage.addChild(lockedCell);
+		
+		var thinkingCell = new PIXI.Text("Thinking...", {font: "35px Snippet", fill: "red", align: "left"});
+		thinkingCell.position.x = 825;
+		thinkingCell.position.y = 625;
+		stage.addChild(thinkingCell);
+		
+		var resolvedIn = new PIXI.Text("The grid was resolved in : \n" + sudoku.totalOperations + " Operations", {font: "35px Snippet", fill: "white", align: "left"});
+		resolvedIn.position.x = 750;
+		resolvedIn.position.y = 350;
+		stage.addChild(resolvedIn);
+		
+		var replay = new PIXI.Text("This is simply a replay of the solution.", {font: "35px Snippet", fill: "white", align: "left"});
+		replay.position.x = 750;
+		replay.position.y = 300;
+		stage.addChild(replay);
+
+		var z = 0;
+		for (var i=0; i < 9 ;i++) {
+			var row = [];
+			for (var j=0; j < 9 ;j++) {
+				var graphics = new PIXI.Graphics();
+				var number = new PIXI.Text(sudoku.SUDOKU_GRID[z], {font: "35px Snippet", fill: "white", align: "left"});
+				row[j] = {graphics: graphics, number: number, usable: (sudoku.SUDOKU_GRID[z] == 0) ? true : false };
+				stage.addChild(graphics);
+				stage.addChild(number);
+				z++;
+			}
+			grid[i] = row;
+		}
+		
+		drawGrid();
+		requestAnimFrame( animate );
+	}
+	
+	function drawGrid() {
+		for (var i=0; i < 9 ;i++) {
+			var row = [];
+			for (var j=0; j < 9 ;j++) {
+				grid[i][j].graphics.lineStyle(1, (grid[i][j].usable ? 0xFFFFFF : 0x0000FF) , 1);
+				grid[i][j].graphics.drawRect(((i+i)/1.4+1)*50, ((j+j)/1.4+1)*50, 50, 50);
+				grid[i][j].number.position.x = ((i+i)/1.4+1)*50+15;
+				grid[i][j].number.position.y = ((j+j)/1.4+1)*50+5;
+			}
+		}
+	}
+	
+	function animate() {
+	
+		if(!areWeDone) {
+			var i = sudoku.A_[operations].x;
+			var j = sudoku.A_[operations].y;
+			var value = sudoku.A_[operations].value;
+			if(!(i == -1 && j == -1 && value == -1)) {
+				if(value == 0) {
+					grid[i][j].graphics.lineStyle(1, (grid[i][j].usable ? 0xFFFFFF : 0x0000FF) , 1);
+					grid[i][j].number.setText(value);
+				}
+				else if(value == -1) {
+					grid[i][j].graphics.lineStyle(1, 0xFF0000 , 1);
+				}
+				else {
+					grid[i][j].graphics.lineStyle(1, 0xFF0000 , 1);
+					grid[i][j].number.setText(value);
+				}
+				grid[i][j].graphics.drawRect(((i+i)/1.4+1)*50, ((j+j)/1.4+1)*50, 50, 50);
+				operations++;
+			}
+			else {
+				areWeDone = true;
+			}
+		}
+	    // render the stage   
+	    renderer.render(stage);
+	    requestAnimFrame( animate );
+	}
+	</script>
+
+	</body>
+</html>
