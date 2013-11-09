@@ -68,7 +68,33 @@
 		replay.position.x = 750;
 		replay.position.y = 300;
 		stage.addChild(replay);
-
+		
+		var gridDifficulty = new PIXI.Text("Grid Difficulty : " + ((sudoku.gridDifficulty == 0) ? "Easy" : 
+																 (sudoku.gridDifficulty == 1) ? "Normal" :
+																 (sudoku.gridDifficulty == 2) ? "Hard" : "Very Hard"), {font: "35px Snippet", fill: "white", align: "left"});
+		gridDifficulty.position.x = 750;
+		gridDifficulty.position.y = 250;
+		stage.addChild(gridDifficulty);
+		
+		var textureRestart = PIXI.Texture.fromImage("restart.png");
+		var restartBtn = new PIXI.Sprite(textureRestart);
+		restartBtn.buttonMode = true;
+		restartBtn.interactive = true;
+		
+		restartBtn.mouseover = function(data){
+				this.alpha = 0.5;
+		}
+				   
+		restartBtn.mouseout = function(data){
+				this.alpha = 1;
+		}
+		restartBtn.click = function(data) {
+			window.location.reload();
+		}
+		restartBtn.position.x = 750;
+		restartBtn.position.y = 150;
+	
+		stage.addChild(restartBtn);
 		var z = 0;
 		for (var i=0; i < 9 ;i++) {
 			var row = [];

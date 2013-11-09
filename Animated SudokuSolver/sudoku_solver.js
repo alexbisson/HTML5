@@ -7,8 +7,6 @@ function SudokuSolver () {
 	this.MIN_VALUE = 1;
 	this.SENTINEL_VALUE = 0;
 	this.M_;
-	this.gridToSolve_;
-	this.gridSolved_;
 	this.SUDOKU_EASY = [0,1,3,0,0,0,0,0,0,
 					   0,0,0,1,8,4,0,3,0,
 					   8,0,6,3,0,0,0,2,0,
@@ -45,25 +43,31 @@ function SudokuSolver () {
 							0,0,2,0,0,7,0,4,0,
 							0,0,0,1,0,0,0,0,9,
 							0,3,4,0,5,0,0,0,2];
+							
 	this.GRIDS = [this.SUDOKU_EASY, this.SUDOKU_NORMAL, this.SUDOKU_HARD, this.SUDOKU_VERY_HARD];
+	this.SUDOKU_GRID = [];
+	this.A_ = [];
+	this.totalOperations = 0;
+	this.gridDifficulty = 0;
 }
 
 SudokuSolver.prototype.findSolution = function() {
 	M_ = [];
+	this.A_ = [];
+	this.gridDifficulty = Math.floor((Math.random()*4));
+	this.SUDOKU_GRID = this.GRIDS[this.gridDifficulty];
+	this.totalOperations = 0;
 	for (var i=0; i < this.ROWS_LIMIT ;i++) {
 		M_[i] = this.M2();
 	}
-	var currentGrid = this.GRIDS[Math.floor((Math.random()*4))];
+	
 	var z = 0;
-	gridToSolve_ = "";
 	for (var i=0; i < this.ROWS_LIMIT ;i++) {
 		for (var j=0; j < this.COLUMNS_LIMIT ;j++) {
-			gridToSolve_ +=  currentGrid[z] + " ";
-			M_[i][j].number = currentGrid[z];
-			M_[i][j].usable = (currentGrid[z] == 0) ? true : false;
+			M_[i][j].number = this.SUDOKU_GRID[z];
+			M_[i][j].usable = (this.SUDOKU_GRID[z] == 0) ? true : false;
 			z++;
 		}
-		gridToSolve_ += "\n";
 	}
 	this.placeNumber(0,0);
 }
@@ -76,16 +80,20 @@ SudokuSolver.prototype.M2 = function() {
 };
 SudokuSolver.prototype.placeNumber = function(x, y) {
 	if(!this.matrixFull()) {
+		this.totalOperations++;
 		if(y >= this.MAX_VALUE) {
 			y = 0;
 			++x;
 		}
 		if(M_[x][y].number == this.SENTINEL_VALUE) {
+			this.A_.push({x: x,y: y,value: -1});
 			for(var z = 1; z <= this.MAX_VALUE ; ++z) {
 				if(this.isUsable(x, y, z)) {
+					this.A_.push({x: x,y: y,value: z});
 					M_[x][y].number = z;
 					this.placeNumber(x, y+1);
 				}
+				this.A_.push({x: x,y: y,value: this.SENTINEL_VALUE});
 				M_[x][y].number = this.SENTINEL_VALUE;
 			}
 		}	
@@ -94,13 +102,7 @@ SudokuSolver.prototype.placeNumber = function(x, y) {
 		}		
 	}
 	else {
-		gridSolved_ = "";
-		for (var i=0;i<this.ROWS_LIMIT;i++) {
-			for (var j=0;j<this.COLUMNS_LIMIT;j++) {
-				gridSolved_ += M_[i][j].number + " ";
-			}
-			gridSolved_ += "\n";
-		}
+		this.A_.push({x: -1,y: -1,value: -1});
 	}
 }
 SudokuSolver.prototype.matrixFull = function() {
