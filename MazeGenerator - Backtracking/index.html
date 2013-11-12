@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>pixi.js example 1</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #000000;
+		}
+	</style>
+	<script src="pixi.js"></script>
+	<script src="maze_generator.js"></script>
+
+</head>
+<body>
+	<script>
+	var grid = [];
+	var width = 150;
+	var height = 45;
+	var squareSize = 15;
+	var squareOffset = 50;
+	var maze = new MazeGenerator(width,height);
+		
+	document.addEventListener('DOMContentLoaded', start, false);
+	
+	function start() {
+		// create an new instance of a pixi stage
+		stage = new PIXI.Stage(0x000000, true);
+		
+		// create a renderer instance
+		renderer = PIXI.autoDetectRenderer(width * squareSize + squareOffset * 2, height * squareSize + squareOffset * 2);
+		
+		// add the renderer view element to the DOM
+		document.body.appendChild(renderer.view);
+		
+		var z = 0;
+		for (var i=0; i < width ;i++) {
+			var row = [];
+			for (var j=0; j < height ;j++) {
+				var graphics = new PIXI.Graphics();
+				row[j] = {graphics: graphics};
+				stage.addChild(graphics);
+				z++;
+			}
+			grid[i] = row;
+		}
+		
+		maze.init();
+		maze.generate();
+		drawGrid(maze.getGrid());
+		requestAnimFrame( animate );
+	}
+	function drawGrid(mazeGrid) {
+		for (var i=0; i < width ;i++) {
+			for (var j=0; j < height ;j++) {
+				grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
+				if ((mazeGrid[i][j] & maze.DIRECTION.N) == 0) {
+					grid[i][j].graphics.moveTo(i * squareSize      ,j * squareSize);
+					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize);
+				}
+				if ((mazeGrid[i][j] & maze.DIRECTION.S) == 0) {
+					grid[i][j].graphics.moveTo(i * squareSize      ,j * squareSize + squareSize);
+					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize + squareSize);
+				}
+				if ((mazeGrid[i][j] & maze.DIRECTION.E) == 0) {
+					grid[i][j].graphics.moveTo(i * squareSize + squareSize ,j * squareSize     );
+					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize + squareSize);
+				}
+				if ((mazeGrid[i][j] & maze.DIRECTION.W) == 0) {
+					grid[i][j].graphics.moveTo(i * squareSize ,j * squareSize     );
+					grid[i][j].graphics.lineTo(i * squareSize ,j * squareSize + squareSize);
+				}
+			}
+		}
+	}
+	function animate() {
+
+	    // render the stage   
+	    renderer.render(stage);
+	    requestAnimFrame( animate );
+	}
+	</script>
+
+	</body>
+</html>
