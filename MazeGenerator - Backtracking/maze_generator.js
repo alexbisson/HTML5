@@ -1,6 +1,7 @@
 //Charles-Étienne Pagé
 function MazeGenerator(width, height) {
 	this.Grid;
+	this.Replay;
 	this.DIRECTION = {N:1,S:2,E:4,W:8};
 	this.DIRECTIONX = [];
 	this.DIRECTIONY = [];
@@ -24,7 +25,7 @@ MazeGenerator.prototype.init = function() {
 	this.DIRECTIONY[this.DIRECTION.S] = 1;
 	this.DIRECTIONY[this.DIRECTION.E] = 0;
 	this.DIRECTIONY[this.DIRECTION.W] = 0;
-	
+	Replay = [];
 	Grid = [];
 	for(var i = 0;i < this.WIDTH; i++) {
 		var column = [];
@@ -35,7 +36,10 @@ MazeGenerator.prototype.init = function() {
 	}
 }
 MazeGenerator.prototype.generate = function() {
-	this.carvePassage(0,0);
+	var rWidth = (Math.random() * this.WIDTH) | 0;
+	var rHeight = (Math.random() * this.HEIGHT) | 0;
+	this.carvePassage(rWidth, rHeight);
+	Replay.push({x: rWidth, y: rHeight, pass: 2});
 }
 MazeGenerator.prototype.carvePassage = function(x,y) {
 	var directions = this.shuffle([this.DIRECTION.N, this.DIRECTION.S, this.DIRECTION.E, this.DIRECTION.W]);
@@ -43,13 +47,12 @@ MazeGenerator.prototype.carvePassage = function(x,y) {
 	for(var i = 0; i < directions.length; i++) {
 		var nextX = x + this.DIRECTIONX[directions[i]];
 		var nextY = y + this.DIRECTIONY[directions[i]];
-		
 		if(!this.isOutOfBounds(nextX, nextY) && Grid[nextX][nextY] == 0) {
-		
 			Grid[x][y] |= directions[i];
 			Grid[nextX][nextY] |= this.OPPOSITE[directions[i]];
-			
+			Replay.push({x: x, y: y, pass: 1, number: Grid[x][y]});
 			this.carvePassage(nextX, nextY);
+			Replay.push({x: nextX, y: nextY, pass: 2, number: Grid[nextX][nextY]});
 		}
 	}
 }
@@ -74,6 +77,6 @@ MazeGenerator.prototype.isOutOfBounds = function (x, y) {
 	}
 	return false;
 }
-MazeGenerator.prototype.getGrid = function() {
-		return Grid;
-	}
+MazeGenerator.prototype.getReplay = function() {
+	return Replay;
+}

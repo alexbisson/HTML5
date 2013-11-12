@@ -16,10 +16,12 @@
 <body>
 	<script>
 	var grid = [];
-	var width = 150;
-	var height = 45;
-	var squareSize = 15;
-	var squareOffset = 50;
+	var mazeReplay = [];
+	var operations = 0;
+	var width = 30;
+	var height = 30;
+	var squareSize = 20;
+	var squareOffset = 20;
 	var maze = new MazeGenerator(width,height);
 		
 	document.addEventListener('DOMContentLoaded', start, false);
@@ -29,11 +31,56 @@
 		stage = new PIXI.Stage(0x000000, true);
 		
 		// create a renderer instance
-		renderer = PIXI.autoDetectRenderer(width * squareSize + squareOffset * 2, height * squareSize + squareOffset * 2);
+		renderer = PIXI.autoDetectRenderer(width * squareSize + squareOffset * 2 + 500, height * squareSize + squareOffset * 2);
 		
 		// add the renderer view element to the DOM
 		document.body.appendChild(renderer.view);
 		
+		var g = new PIXI.Graphics();
+		g.lineStyle(3, 0xFFFFFF , 1);
+		g.drawRect(650,340, 50, 50);
+		g.beginFill(0x0000FF, 1);
+		g.lineStyle(3, 0x0000FF , 1);
+		g.drawRect(650,400, 50, 50);
+		g.endFill();
+		g.beginFill(0xFF0000, 1);
+		g.lineStyle(3, 0xFF0000 , 1);
+		g.drawRect(650,460, 50, 50);
+		g.endFill();
+		stage.addChild(g);
+		
+		var emptyCell = new PIXI.Text("Unused cell", {font: "35px Snippet", fill: "white", align: "left"});
+		emptyCell.position.x = 725;
+		emptyCell.position.y = 345;
+		stage.addChild(emptyCell);
+		var stackedCell = new PIXI.Text("Stacked cell", {font: "35px Snippet", fill: "blue", align: "left"});
+		stackedCell.position.x = 725;
+		stackedCell.position.y = 405;
+		stage.addChild(stackedCell);
+		var unstackedCell = new PIXI.Text("Unstacked cell", {font: "35px Snippet", fill: "red", align: "left"});
+		unstackedCell.position.x = 725;
+		unstackedCell.position.y = 465;
+		stage.addChild(unstackedCell);
+		
+		var textureRestart = PIXI.Texture.fromImage("restart.png");
+		var restartBtn = new PIXI.Sprite(textureRestart);
+		restartBtn.buttonMode = true;
+		restartBtn.interactive = true;
+		
+		restartBtn.mouseover = function(data){
+				this.alpha = 0.5;
+		}
+				   
+		restartBtn.mouseout = function(data){
+				this.alpha = 1;
+		}
+		restartBtn.click = function(data) {
+			window.location.reload();
+		}
+		restartBtn.position.x = 650;
+		restartBtn.position.y = 0;
+	
+		stage.addChild(restartBtn);
 		var z = 0;
 		for (var i=0; i < width ;i++) {
 			var row = [];
@@ -48,35 +95,73 @@
 		
 		maze.init();
 		maze.generate();
-		drawGrid(maze.getGrid());
+		mazeReplay = maze.getReplay();
+		drawGrid();
 		requestAnimFrame( animate );
 	}
-	function drawGrid(mazeGrid) {
+	function drawGrid() {
 		for (var i=0; i < width ;i++) {
 			for (var j=0; j < height ;j++) {
-				grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
-				if ((mazeGrid[i][j] & maze.DIRECTION.N) == 0) {
-					grid[i][j].graphics.moveTo(i * squareSize      ,j * squareSize);
-					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize);
-				}
-				if ((mazeGrid[i][j] & maze.DIRECTION.S) == 0) {
-					grid[i][j].graphics.moveTo(i * squareSize      ,j * squareSize + squareSize);
-					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize + squareSize);
-				}
-				if ((mazeGrid[i][j] & maze.DIRECTION.E) == 0) {
-					grid[i][j].graphics.moveTo(i * squareSize + squareSize ,j * squareSize     );
-					grid[i][j].graphics.lineTo(i * squareSize + squareSize ,j * squareSize + squareSize);
-				}
-				if ((mazeGrid[i][j] & maze.DIRECTION.W) == 0) {
-					grid[i][j].graphics.moveTo(i * squareSize ,j * squareSize     );
-					grid[i][j].graphics.lineTo(i * squareSize ,j * squareSize + squareSize);
-				}
+				updateGridSection(i, j, 0, 0)
 			}
 		}
 	}
+	function updateGridSection(i, j, pass, number) {
+		var lineColor = (pass == 0) ? 0x000000 : ((pass == 1) ? 0x0000FF : 0xFF0000);
+		grid[i][j].graphics.lineStyle(0);
+		grid[i][j].graphics.beginFill(lineColor, 1);
+		grid[i][j].graphics.drawRect(i * squareSize + squareOffset , j * squareSize + squareOffset , squareSize, squareSize);
+		grid[i][j].graphics.endFill();
+		if ((number & maze.DIRECTION.N) != 0) {
+			grid[i][j].graphics.lineStyle(1, lineColor, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset               ,j * squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset  ,j * squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.S) != 0) {
+			grid[i][j].graphics.lineStyle(1, lineColor, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset              ,j * squareSize + squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset ,j * squareSize + squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.E) != 0) {
+			grid[i][j].graphics.lineStyle(1, lineColor, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareSize + squareOffset,j * squareSize + squareOffset + 1);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset,j * squareSize + squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.W) != 0) {
+			grid[i][j].graphics.lineStyle(1, lineColor, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset,j * squareSize + squareOffset + 1);
+			grid[i][j].graphics.lineTo(i * squareSize + squareOffset,j * squareSize + squareSize + squareOffset);
+		}
+		
+		if ((number & maze.DIRECTION.N) == 0) {
+			grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset               ,j * squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset  ,j * squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.S) == 0) {
+			grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset              ,j * squareSize + squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset ,j * squareSize + squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.E) == 0) {
+			grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareSize + squareOffset,j * squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareSize + squareOffset,j * squareSize + squareSize + squareOffset);
+		}
+		if ((number & maze.DIRECTION.W) == 0) {
+			grid[i][j].graphics.lineStyle(1, 0xFFFFFF, 1);
+			grid[i][j].graphics.moveTo(i * squareSize + squareOffset,j * squareSize + squareOffset);
+			grid[i][j].graphics.lineTo(i * squareSize + squareOffset,j * squareSize + squareSize + squareOffset);
+		}
+		grid[i][j].graphics.moveTo(i * squareSize ,j * squareSize);
+	}
 	function animate() {
 
-	    // render the stage   
+	    // render the stage 
+		if(operations < mazeReplay.length) {
+			updateGridSection(mazeReplay[operations].x, mazeReplay[operations].y, mazeReplay[operations].pass, mazeReplay[operations].number);
+			operations++;
+		}
 	    renderer.render(stage);
 	    requestAnimFrame( animate );
 	}
