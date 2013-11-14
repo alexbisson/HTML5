@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>Geometry Field</title>
+	<style>
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #000000;
+			overflow: hidden;
+		}
+	</style>
+	<script src="Three.js"></script>
+
+</head>
+<body>
+	<script>
+	
+	var camera, scene, render, mouseX = 0, mouseY = 0, particles = [];
+	document.addEventListener('DOMContentLoaded', init, false);
+	
+	function init() {
+		camera = new THREE.PerspectiveCamera(80, window.innerWidth/window.innerHeight, 1, 4000);
+		camera.position.z = 1000;
+		
+		scene = new THREE.Scene();
+		scene.add(camera);
+		
+		renderer = new THREE.CanvasRenderer();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		
+		document.body.appendChild( renderer.domElement );
+		
+		makeParticles(); 
+ 
+		document.addEventListener( 'mousemove', onMouseMove, false );
+	 
+		setInterval(update, 1000/30);
+	}
+	
+	function update() {
+ 
+		updateParticles();
+		renderer.render( scene, camera );
+	}
+	
+	function makeParticles() { 
+ 
+		var particle, material; 
+		var colors = [0xFFFFFF, 0xFF0000, 0x00FF00, 0x0000FF];
+		for ( var zpos= -1000; zpos < 1000; zpos+=20 ) {
+			var randomRender = ((Math.random() * 3) | 0 );
+			if(randomRender == 0) {
+				material = new THREE.ParticleCanvasMaterial( { color:  colors[(Math.random() * 4) | 0] , program: circleRender } );
+			}
+			else if(randomRender == 1){
+				material = new THREE.ParticleCanvasMaterial( { color:  colors[(Math.random() * 4) | 0] , program: squareRender } );
+			}
+			else {
+				material = new THREE.ParticleCanvasMaterial( { color:  colors[(Math.random() * 4) | 0] , program: triangleRender } );
+			}
+			
+			particle = new THREE.Particle(material);
+	 
+			particle.position.x = Math.random() * 1000 - 500;
+			particle.position.y = Math.random() * 1000 - 500;
+	 
+			particle.position.z = zpos;
+	 
+			particle.scale.x = particle.scale.y = ((Math.random() * 2 + 1) | 0) * 20;
+	 
+			scene.add( particle );
+	 
+			particles.push(particle); 
+		}
+	}
+	
+	function circleRender( context ) {
+ 
+		context.beginPath();
+		context.arc( 0, 0, 1, 0,  Math.PI * 2, true );
+		context.fill();
+	}
+	
+	function squareRender( context ) {
+ 
+		context.beginPath();
+		context.rect( 0, 0, 1, 1);
+		context.fill();
+	}
+	
+	function triangleRender( context ) {
+ 
+		context.beginPath();
+		context.moveTo( 0.5, 0);
+		context.lineTo( 1, 1);
+		context.lineTo( 0, 1);
+		context.lineTo( 0.5, 0);
+		context.fill();
+	}
+	
+	function updateParticles() { 
+ 
+		for(var i=0; i<particles.length; i++) {
+	 
+			particle = particles[i]; 
+			
+			if( mouseY <= window.innerHeight / 2) {
+				particle.position.z +=  ((window.innerHeight / 2) - mouseY) * 0.1;
+		 
+				if(particle.position.z>1000) 
+					particle.position.z-=2000; 
+			}
+			else {
+				particle.position.z -=  (mouseY - (window.innerHeight / 2)) * 0.1;
+		 
+				if(particle.position.z<-1000) 
+					particle.position.z+=2000; 
+			}
+	 
+		}
+	}
+	function onMouseMove( event ) {
+	
+		mouseX = event.clientX;
+		mouseY = event.clientY;
+	}
+
+	</script>
+
+	</body>
+</html>
